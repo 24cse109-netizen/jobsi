@@ -275,6 +275,21 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(frontendBuildPath, "index.html"));
 });
 
+// Supabase / DB status endpoint
+app.get("/api/db-status", async (req, res) => {
+  if (!supabaseEnabled) {
+    return res.json({ supabase: false, message: "Supabase not configured or unreachable" });
+  }
+
+  try {
+    const { data, error } = await supabaseServer.from('jobs').select('id').limit(1);
+    if (error) throw error;
+    return res.json({ supabase: true, sampleCount: Array.isArray(data) ? data.length : 0 });
+  } catch (e) {
+    return res.status(500).json({ supabase: false, error: e.message });
+  }
+});
+
 try {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
